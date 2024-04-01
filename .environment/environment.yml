@@ -1,6 +1,8 @@
-name: fl-bench
+name: fedbench
 channels:
-  - defaults
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free
 dependencies:
   - _libgcc_mutex=0.1=main
   - _openmp_mutex=5.1=1_gnu
@@ -116,4 +118,4 @@ dependencies:
       - visdom==0.2.4
       - websocket-client==1.7.0
       - zipp==3.17.0
-prefix: /root/miniconda3/envs/fl-bench
+prefix: /home/miracle/.conda/envs/fedbench
