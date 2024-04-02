@@ -1,3 +1,5 @@
+import torch
+
 from fedavg import FedAvgClient
 from src.utils.tools import trainable_params
 
@@ -21,5 +23,6 @@ class FedProxClient(FedAvgClient):
                 self.optimizer.zero_grad()
                 loss.backward()
                 for w, w_t in zip(trainable_params(self.model), global_params):
-                    w.grad.data += self.args.mu * (w.data - w_t.data)
+                    # w.grad.data += self.args.mu * (w.data - w_t.data)
+                    w.grad.data += self.args.mu * torch.sin(w.data - w_t.data)
                 self.optimizer.step()

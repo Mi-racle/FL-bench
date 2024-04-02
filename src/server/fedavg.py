@@ -37,7 +37,7 @@ from src.client.fedavg import FedAvgClient
 def get_fedavg_argparser() -> ArgumentParser:
     parser = ArgumentParser()
     parser.add_argument(
-        "-m", "--model", type=str, default="lenet5", choices=MODELS.keys()
+        "-m", "--model", type=str, default="res18", choices=MODELS.keys()
     )
     parser.add_argument(
         "-d", "--dataset", type=str, choices=DATASETS.keys(), default="cifar10"
