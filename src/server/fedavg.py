@@ -8,7 +8,7 @@ from pathlib import Path
 from argparse import ArgumentParser, Namespace
 from collections import OrderedDict
 from copy import deepcopy
-from typing import Dict, List, OrderedDict
+from typing import Dict, List, OrderedDict, Any, Type
 
 import torch
 import numpy as np
@@ -128,9 +128,9 @@ class FedAvgServer:
         random_init_params, self.trainable_params_name = trainable_params(
             self.model, detach=True, requires_name=True
         )
-        self.global_params_dict = OrderedDict(
+        self.global_params_dict = OrderedDict[
             zip(self.trainable_params_name, random_init_params)
-        )
+        ]
         if (
             not self.unique_model
             and self.args.external_model_params_file
@@ -368,7 +368,7 @@ class FedAvgServer:
                 "FL system don't preserve params for each client (unique_model = False)."
             )
 
-    def generate_client_params(self, client_id: int) -> OrderedDict[str, torch.Tensor]:
+    def generate_client_params(self, client_id: int) -> Type[OrderedDict[Any]]:
         """
         This function is for outputting model parameters that asked by `client_id`.
 
@@ -379,9 +379,9 @@ class FedAvgServer:
             OrderedDict[str, torch.Tensor]: The trainable model parameters.
         """
         if self.unique_model:
-            return OrderedDict(
+            return OrderedDict[
                 zip(self.trainable_params_name, self.client_trainable_params[client_id])
-            )
+            ]
         else:
             return self.global_params_dict
 
