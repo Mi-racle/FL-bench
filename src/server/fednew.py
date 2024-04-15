@@ -5,6 +5,7 @@ from typing import Type, Any
 
 from src.client.fednew import FedNewClient
 from src.server.fedavg import FedAvgServer, get_fedavg_argparser
+from src.utils.tools import trainable_params
 
 
 def get_fednew_argparser() -> ArgumentParser:
@@ -25,8 +26,11 @@ class FedNewServer(FedAvgServer):
         if args is None:
             args = get_fednew_argparser().parse_args()
         super().__init__(algo, args, unique_model, default_trainer)
+        random_init_params, self.trainable_params_name = trainable_params(
+            self.model, detach=True, requires_name=True
+        )
         self.cluster_params_dict = OrderedDict[
-            # TOD
+            zip(self.trainable_params_name, random_init_params)
         ]
         self.trainer = FedNewClient(
             deepcopy(self.model), self.args, self.logger, self.device
