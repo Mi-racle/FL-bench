@@ -30,11 +30,10 @@ class FedNewClient(FedAvgClient):
                     # w.grad.data += self.args.mu * torch.sin(w.data - w_t.data)
                 self.optimizer.step()
 
-    def train(
+    def train_personal(
         self,
-        client_id: int,
         local_epoch: int,
-        new_parameters: OrderedDict[str, torch.Tensor],
+        local_parameters: OrderedDict[str, torch.Tensor],
         return_diff=True,
         verbose=False,
     ) -> Tuple[Union[OrderedDict[str, torch.Tensor], List[torch.Tensor]], int, Dict]:
@@ -43,11 +42,10 @@ class FedNewClient(FedAvgClient):
         If you wanna implement your method, consider to override this funciton.
 
         Args:
-            client_id (int): The ID of client.
 
             local_epoch (int): The number of epochs for performing local training.
 
-            new_parameters (OrderedDict[str, torch.Tensor]): Parameters of FL model.
+            local_parameters (OrderedDict[str, torch.Tensor]): Parameters of FL model.
 
             return_diff (bool, optional):
             `True`: to send the differences between FL model parameters that before and after training;
@@ -59,10 +57,9 @@ class FedNewClient(FedAvgClient):
             Tuple[Union[OrderedDict[str, torch.Tensor], List[torch.Tensor]], int, Dict]:
             [The difference / all trainable parameters, the weight of this client, the evaluation metric stats].
         """
-        self.client_id = client_id
         self.local_epoch = local_epoch
         self.load_dataset()
-        self.set_parameters(new_parameters)
+        self.set_parameters(local_parameters)
         eval_results = self.train_and_log(verbose=verbose)
 
         if return_diff:

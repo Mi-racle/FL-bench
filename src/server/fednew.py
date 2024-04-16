@@ -17,11 +17,11 @@ def get_fednew_argparser() -> ArgumentParser:
 
 class FedNewServer(FedAvgServer):
     def __init__(
-        self,
-        algo: str = "FedNew",
-        args: Namespace = None,
-        unique_model=False,
-        default_trainer=False,
+            self,
+            algo: str = "FedNew",
+            args: Namespace = None,
+            unique_model=False,
+            default_trainer=False,
     ):
         if args is None:
             args = get_fednew_argparser().parse_args()
@@ -57,7 +57,6 @@ class FedNewServer(FedAvgServer):
             weight_cache.append(weight)
 
         self.aggregate(delta_cache, weight_cache)
-
 
     def generate_cluster_params(self) -> Type[OrderedDict[Any]]:
         """
