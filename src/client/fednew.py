@@ -30,10 +30,12 @@ class FedNewClient(FedAvgClient):
                     # w.grad.data += self.args.mu * torch.sin(w.data - w_t.data)
                 self.optimizer.step()
 
-    def train_personal(
+    def local_train(
         self,
+        client_id: int,
         local_epoch: int,
         local_parameters: OrderedDict[str, torch.Tensor],
+        cluster_parameters: OrderedDict[int, OrderedDict[str, torch.Tensor]],
         return_diff=True,
         verbose=False,
     ) -> Tuple[Union[OrderedDict[str, torch.Tensor], List[torch.Tensor]], int, Dict]:
@@ -42,8 +44,11 @@ class FedNewClient(FedAvgClient):
         If you wanna implement your method, consider to override this funciton.
 
         Args:
+            client_id (int): The ID of client.
 
             local_epoch (int): The number of epochs for performing local training.
+
+            cluster_parameters (OrderedDict[int, OrderedDict[str, torch.Tensor]]):.
 
             local_parameters (OrderedDict[str, torch.Tensor]): Parameters of FL model.
 
