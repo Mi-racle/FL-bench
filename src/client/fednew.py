@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from copy import deepcopy
 from typing import Union, Tuple, List, Dict
 
 import torch
@@ -10,6 +11,10 @@ from src.utils.tools import trainable_params
 class FedNewClient(FedAvgClient):
     def __init__(self, model, args, logger, device):
         super(FedNewClient, self).__init__(model, args, logger, device)
+        self.cluster_models = []
+        # TOD
+        for i in range(2):
+            self.cluster_models.append(deepcopy(self.model))
 
     def fit(self):
         self.model.train()
@@ -30,12 +35,20 @@ class FedNewClient(FedAvgClient):
                     # w.grad.data += self.args.mu * torch.sin(w.data - w_t.data)
                 self.optimizer.step()
 
+    def set_cluster_parameters(self, cluster_parameters: List[OrderedDict[str, torch.Tensor]]):
+        """Load model parameters received from the server.
+
+        Args:
+            cluster_parameters (List[OrderedDict[str, torch.Tensor]]): Parameters of cluster models.
+        """
+        for i in range(len(cluster_parameters)):
+            self.cluster_models[i].load_state_dict(cluster_parameters[i], strict=False)
+
     def local_train(
         self,
         client_id: int,
         local_epoch: int,
         local_parameters: OrderedDict[str, torch.Tensor],
-        cluster_parameters: OrderedDict[int, OrderedDict[str, torch.Tensor]],
         return_diff=True,
         verbose=False,
     ) -> Tuple[Union[OrderedDict[str, torch.Tensor], List[torch.Tensor]], int, Dict]:
@@ -47,8 +60,6 @@ class FedNewClient(FedAvgClient):
             client_id (int): The ID of client.
 
             local_epoch (int): The number of epochs for performing local training.
-
-            cluster_parameters (OrderedDict[int, OrderedDict[str, torch.Tensor]]):.
 
             local_parameters (OrderedDict[str, torch.Tensor]): Parameters of FL model.
 
@@ -70,7 +81,7 @@ class FedNewClient(FedAvgClient):
         if return_diff:
             delta = OrderedDict()
             for (name, p0), p1 in zip(
-                new_parameters.items(), trainable_params(self.model)
+                local_parameters.items(), trainable_params(self.model)
             ):
                 delta[name] = p0 - p1
 

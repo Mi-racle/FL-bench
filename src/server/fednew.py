@@ -29,15 +29,21 @@ class FedNewServer(FedAvgServer):
         random_init_params, self.trainable_params_name = trainable_params(
             self.model, detach=True, requires_name=True
         )
-        self.cluster_params_dict = OrderedDict[
-            zip(self.trainable_params_name, random_init_params)
-        ]
+        self.cluster_params_list = []
+        # TOD
+        for i in range(2):
+            self.cluster_params_list.append(
+                OrderedDict[
+                    zip(self.trainable_params_name, random_init_params)
+                ]
+            )
         self.trainer = FedNewClient(
             deepcopy(self.model), self.args, self.logger, self.device
         )
 
     def train_one_round(self):
         """The function of indicating specific things FL method need to do (at server side) in each communication round."""
+        self.trainer.set_cluster_parameters(self.cluster_params_list)
         delta_cache = []
         weight_cache = []
         for client_id in self.selected_clients:
@@ -46,10 +52,10 @@ class FedNewServer(FedAvgServer):
                 delta,
                 weight,
                 self.client_metrics[client_id][self.current_epoch],
-            ) = self.trainer.train(
+            ) = self.trainer.local_train(
                 client_id=client_id,
                 local_epoch=self.clients_local_epoch[client_id],
-                new_parameters=client_local_params,
+                local_parameters=client_local_params,
                 verbose=((self.current_epoch + 1) % self.args.verbose_gap) == 0,
             )
 

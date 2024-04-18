@@ -125,11 +125,7 @@ class FedAvgClient:
         Returns:
             Dict[str, Dict[str, float]]: The logging info, which contains metric stats.
         """
-        eval_metrics = {
-            "before": {"train": Metrics(), "val": Metrics(), "test": Metrics()},
-            "after": {"train": Metrics(), "val": Metrics(), "test": Metrics()},
-        }
-        eval_metrics["before"] = self.evaluate()
+        eval_metrics = {"before": self.evaluate(), "after": {"train": Metrics(), "val": Metrics(), "test": Metrics()}}
         if self.local_epoch > 0:
             self.fit()
             self.save_state()
