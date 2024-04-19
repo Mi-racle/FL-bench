@@ -5,6 +5,7 @@ from typing import Union, Tuple, List, Dict
 import torch
 
 from fedavg import FedAvgClient
+from src.utils.metrics import Metrics
 from src.utils.tools import trainable_params
 
 
@@ -34,6 +35,54 @@ class FedNewClient(FedAvgClient):
                     w.grad.data += self.args.mu * (w.data - w_t.data)
                     # w.grad.data += self.args.mu * torch.sin(w.data - w_t.data)
                 self.optimizer.step()
+
+    def evaluate_distribution(self):
+
+        for model in self.cluster_models:
+            model.eval()
+            metrics = Metrics()
+            for x, y in self.testloader:
+                x, y = x.to(self.device), y.to(self.device)
+                logits = model(x)
+                loss = criterion(logits, y).item()
+                pred = torch.argmax(logits, -1)
+                metrics.update(Metrics(loss, pred, y))
+        return metrics
+
+    def train_and_log(self, verbose=False) -> Dict[str, Dict[str, float]]:
+        """This function includes the local training and logging process.
+
+        Args:
+            verbose (bool, optional): Set to `True` for print logging info onto the stdout (Controled by the server by default). Defaults to False.
+
+        Returns:
+            Dict[str, Dict[str, float]]: The logging info, which contains metric stats.
+        """
+        eval_metrics = {"before": self.evaluate(), "after": {"train": Metrics(), "val": Metrics(), "test": Metrics()}}
+        if self.local_epoch > 0:
+            self.fit()
+            self.save_state()
+            eval_metrics["after"] = self.evaluate()
+        if verbose:
+            for split, color, flag, subset in [
+                ["train", "yellow", self.args.eval_train, self.trainset],
+                ["val", "green", self.args.eval_val, self.valset],
+                ["test", "cyan", self.args.eval_test, self.testset],
+            ]:
+                if len(subset) > 0 and flag:
+                    self.logger.log(
+                        "client [{}] [{}]({})  loss: {:.4f} -> {:.4f}   accuracy: {:.2f}% -> {:.2f}%".format(
+                            self.client_id,
+                            color,
+                            split,
+                            eval_metrics["before"][split].loss,
+                            eval_metrics["after"][split].loss,
+                            eval_metrics["before"][split].accuracy,
+                            eval_metrics["after"][split].accuracy,
+                        )
+                    )
+
+        return eval_metrics
 
     def set_cluster_parameters(self, cluster_parameters: List[OrderedDict[str, torch.Tensor]]):
         """Load model parameters received from the server.
